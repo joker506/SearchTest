@@ -15,15 +15,25 @@ const searchUser = usersData.value.find((item) => item.id == id)
     <router-link to="/">Back</router-link>
     <div v-if="searchUser">
       <h1>This is an about: {{ searchUser.name }}</h1>
-      <ul>
-        <li>Phone: {{ searchUser.phone }}</li>
-        <li>Email: {{ searchUser.email }}</li>
-        <li>Ip: {{ searchUser.ip }}</li>
-        <li>Nickname: {{ searchUser.nickname }}</li>
-      </ul>
+      <div class="card__wrapp">
+        <div>
+          <img :src="searchUser.avatar" alt="" />
+        </div>
+        <div>
+          <ul>
+            <li>Phone: {{ searchUser.phone }}</li>
+            <li>Email: {{ searchUser.email }}</li>
+            <li>Ip: {{ searchUser.ip }}</li>
+            <li>Nickname: {{ searchUser.nickname }}</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
-<style>
+<style scoped>
+.card__wrapp {
+  display: flex;
+}
 </style>

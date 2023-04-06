@@ -16,7 +16,6 @@ onMounted(async () => {
   <main>
     <div>
       <SearchItem @is-error="isError" />
-
       <div class="" v-if="showErr">
         <span class="error">User is not found! </span>
       </div>
