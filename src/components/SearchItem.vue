@@ -3,10 +3,12 @@ import { computed, ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUsersStore } from '@/stores/users'
 import { storeToRefs } from 'pinia'
-
 import ButtonBase from '../components/ButtonBase.vue'
 import InputBase from '../components/InputBase.vue'
 import { regexType } from '../helpers/regex.js'
+import { parsePhoneNumber, isValidPhoneNumber, isPossiblePhoneNumber } from 'libphonenumber-js'
+
+import emailValidator from 'email-validator'
 
 const searchText = ref('')
 let typeValue = ref('')
@@ -28,20 +30,39 @@ watch(searchText, () => {
 })
 
 const sendCheck = () => {
+  let parseNumber = ''
+  let isValidNumber = ''
   const searchType = regexTypeList.find(({ regex, type }) => {
-    if (regex.test(searchText.value)) {
+    const checkPhone = isPossiblePhoneNumber(searchText.value)
+    const validEmail = emailValidator.validate(searchText.value)
+
+    if (type === 'Phone' && !!checkPhone) {
+      parseNumber = parsePhoneNumber(searchText.value, 'RU')
+      isValidNumber = isValidPhoneNumber(parseNumber.number)
+      return type
+    } else if (type === 'Email' && validEmail) {
+      isValidNumber = true
+      return type
+    } else if (regex.test(searchText.value)) {
+      isValidNumber = true
       return type
     }
   })
-  if (searchType) {
+
+  if (searchType && isValidNumber) {
     const { type } = searchType
     const resp = usersData.value.find((item) => {
       const itemType = item[type.toLowerCase()]
-      return itemType.toLowerCase() === searchText.value.toLowerCase()
+      const itemText = searchText.value.toLowerCase().includes('@')
+        ? searchText.value.toLowerCase().replace(/^@/, '')
+        : searchText.value.toLowerCase()
+      return type === 'Phone'
+        ? itemType.toLowerCase().replace(/[^\d+]/g, '') === parseNumber.number
+        : itemType.toLowerCase() === itemText
     })
+
     if (resp) {
       typeValue.value = type
-
       emit('isError', false)
       setTimeout(() => {
         searchText.value = ''
@@ -49,6 +70,7 @@ const sendCheck = () => {
         router.push({ path: `/about/${resp.id}` })
       }, 500)
     } else {
+      typeValue.value = type
       emit('isError', true)
     }
   } else {
